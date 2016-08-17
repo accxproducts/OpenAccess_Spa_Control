@@ -952,7 +952,7 @@ void LV1turnOff()
 void safetyCheck()
 {
   float temp=Thermistor(getADCvalue(TPIN)); 
-  if((temp <40) ||(temp > 125))  // Check for shorted or open thermocouple and freeze system if present.
+  if((temp <40) ||(temp > 140))  // Check for shorted or open thermocouple and freeze system if present.
    {
     pumptoOff();
     Serial.println("Error! Temperature out of range! Shutting down system.");
