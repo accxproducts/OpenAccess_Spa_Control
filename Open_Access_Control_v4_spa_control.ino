@@ -113,12 +113,16 @@ boolean     chlorinatorOn=false;
 boolean     LV1On=false;                        // Keep track of when door chime last activated
 boolean     LV2On=false;                       // Keep track of when door last closed for exit delay
 
-volatile boolean     button1Changed=false;
-volatile int        userMode=0;
-volatile unsigned long button1timer=0;
+volatile boolean         button1Changed=false;
+volatile int             userMode=0;
+volatile unsigned long   button1timer=millis();
+
+volatile boolean         button2Changed=false;
+volatile unsigned long   button2timer=millis();
+volatile int             lightMode=0;
 
 int        setPoint=0;
-int        lightMode=0;
+
 /*  Global Timers
  *
  */
@@ -181,7 +185,8 @@ const prog_uchar statusMessage6[]         PROGMEM  = {"LV light2 state (1=On):"}
 
 void setup(){           // Runs once at Arduino boot-up
 
-attachInterrupt(0, checkSwitch1, CHANGE);
+attachInterrupt(0, checkSwitch1, FALLING);
+attachInterrupt(1, checkSwitch2, FALLING);
 
 #ifdef DS18S20
   sensors.begin();  // Start the temp sensor library
@@ -252,9 +257,10 @@ safetyCheck();  // Check for out-of-range thermocouple.  Freeze system if presen
 
 void loop()                                     // Main branch, runs over and over again
 {                         
-safetyCheck();                                 // Check for button presses.
-userModeCheck();                               // Button 1 (spa on) workflow
-checkSwitch2();
+//safetyCheck();                                 // Check for button presses.
+userModeCheck();                                 // Button 1 (spa on) workflow
+lightModeCheck(); 
+//checkSwitch2();                                  // Button 2 (lighting control)
 
 
 readCommand();                                 // Check for commands entered at serial console
@@ -670,7 +676,13 @@ if(setPoint !=value)
 void lightModeCheck()
 {
   
+if(button2Changed==true)
+  {
+    button2Changed=false;
+
+
  
+  
 switch(lightMode) 
 
 {
@@ -714,7 +726,9 @@ switch(lightMode)
 }
 }
 
+} //End of function
 
+/*
 void checkSwitch2()          // Check for button presses
 {
   while(digitalRead(BUTTON2) == 0) 
@@ -734,15 +748,41 @@ void checkSwitch2()          // Check for button presses
    }
    
 }
+*/
 
 
 
+
+void checkSwitch2()          // Check for button presses.  This one is interrupt-driven.
+{ 
+  if((millis()-button2timer)>=1000)
+ { 
+
+     if(lightMode <2) 
+      {
+       lightMode++;
+      }
+     else 
+     {
+       lightMode =0;
+
+     }  
+ 
+
+   button2Changed=true;
+   button2timer=millis();
+  
+    
+
+
+ }
+}
 
 
 
 void checkSwitch1()          // Check for button presses.  This one is interrupt-driven.
 { 
-  if((millis()-button1timer)>=600)
+  if((millis()-button1timer)>=1000)
  { 
   button1Changed=true;
   button1timer=millis();
@@ -798,6 +838,9 @@ void userModeCheck()
        pumpOn=0;
        digitalWrite(PUMP, LOW);
        mcp.digitalWrite(LED2, LOW);
+       mcp.digitalWrite(HEATER, LOW);
+       mcp.digitalWrite(LED3, LOW);
+       heaterOn=false;
        Serial.println("Pump off by user button.");
        break;
       }
@@ -943,10 +986,12 @@ void LV1turnOff()
     mcp.digitalWrite(LED1, LOW);
     mcp.digitalWrite(LED2, LOW);
     mcp.digitalWrite(LED3, LOW);
-    heaterOn=0;
+    heaterOn=false;
     pumpOn=0;
     chlorinatorOn=0;
     userMode=0;
+
+
   }
 
 void safetyCheck()

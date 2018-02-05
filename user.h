@@ -29,7 +29,7 @@
 #define MAXTEMP 105                    // Maximum thermostat setpoint on dial (Farenheit)
 #define TIMEOUT    1800000             // Max number of seconds *1000 user mode turns spa on
 #define SYSTIMEOUT 1800000             // Max number of seconds *1000 user mode turns spa on
-#define CL_TIMEOUT 300000              // Max number of seconds *1000 that a chlorine dispense can run.
+#define CL_TIMEOUT 80000              // Max number of seconds *1000 that a chlorine dispense can run.
 #define POTLOW    710
 #define POTHIGH   770
 #define THERMINTERVAL 60000
